@@ -74,13 +74,7 @@ public class RetailStoreDetailsSevice {
 	public ItemDetails deleteItemFromCart(int id) {
 		ItemDetails itemDetails = new ItemDetails();
 		List itemlist = getAllItems();
-		itemDetails.getListOfItem().addAll((List<Item>) itemlist.parallelStream().filter(new Predicate<Item>() {
-
-			@Override
-			public boolean test(Item t) {
-				return t.isItemSelected();
-			}
-		}).collect(Collectors.toList()));
+		getTheItemAddedToCart(itemDetails, itemlist);
 		itemDetails.getListOfItem().remove(itemDetails.getListOfItem().parallelStream().filter(new Predicate<Item>() {
 
 			@Override
@@ -91,6 +85,14 @@ public class RetailStoreDetailsSevice {
 				return false;
 			}
 		}).findFirst().get());
+		Optional<Item> item=itemRepository.findById(id);
+		try {
+		Item item2=item.get();
+		item2.setItemSelected(false);
+		itemRepository.save(item2);
+		}catch(NoSuchElementException e) {
+			
+		}
 		itemTaxAndCostService.getTheBillDetails(itemDetails);
 		return itemDetails;
 	}
@@ -98,6 +100,12 @@ public class RetailStoreDetailsSevice {
 	public ItemDetails getTheBillDetails() {
 		ItemDetails itemDetails = new ItemDetails();
 		List itemlist = getAllItems();
+		getTheItemAddedToCart(itemDetails, itemlist);
+		itemTaxAndCostService.getTheBillDetails(itemDetails);
+		return itemDetails;
+	}
+
+	private void getTheItemAddedToCart(ItemDetails itemDetails, List itemlist) {
 		itemDetails.getListOfItem().addAll((List<Item>) itemlist.parallelStream().filter(new Predicate<Item>() {
 
 			@Override
@@ -105,7 +113,5 @@ public class RetailStoreDetailsSevice {
 				return t.isItemSelected();
 			}
 		}).collect(Collectors.toList()));
-		itemTaxAndCostService.getTheBillDetails(itemDetails);
-		return itemDetails;
 	}
 }
