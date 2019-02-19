@@ -1,6 +1,5 @@
 package com.retail.store.CheckOutCounter.service;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -25,18 +24,15 @@ public class RetailStoreDetailsSevice {
 
 	public List<Item> getAllItems() {
 		List<Item> itemList = (List<Item>) itemRepository.findAll();
-		itemList.sort(new Comparator<Item>() {
-
-			@Override
-			public int compare(Item o1, Item o2) {
-				if (o1.getItemNo() < o2.getItemNo()) {
-					return -1;
-				} else if (o1.getItemNo() > o2.getItemNo()) {
-					return +1;
-				} else {
-					return 0;
-				}
-			}});
+		itemList.sort((o1, o2) -> {
+			if (o1.getItemNo() < o2.getItemNo()) {
+				return -1;
+			} else if (o1.getItemNo() > o2.getItemNo()) {
+				return +1;
+			} else {
+				return 0;
+			}
+		});
 		return itemList;
 	}
 
@@ -75,23 +71,19 @@ public class RetailStoreDetailsSevice {
 		ItemDetails itemDetails = new ItemDetails();
 		List itemlist = getAllItems();
 		getTheItemAddedToCart(itemDetails, itemlist);
-		itemDetails.getListOfItem().remove(itemDetails.getListOfItem().parallelStream().filter(new Predicate<Item>() {
-
-			@Override
-			public boolean test(Item t) {
-				if (t.getItemNo() == id) {
-					return true;
-				}
-				return false;
+		itemDetails.getListOfItem().remove(itemDetails.getListOfItem().parallelStream().filter(t -> {
+			if (t.getItemNo() == id) {
+				return true;
 			}
+			return false;
 		}).findFirst().get());
-		Optional<Item> item=itemRepository.findById(id);
+		Optional<Item> item = itemRepository.findById(id);
 		try {
-		Item item2=item.get();
-		item2.setItemSelected(false);
-		itemRepository.save(item2);
-		}catch(NoSuchElementException e) {
-			
+			Item item2 = item.get();
+			item2.setItemSelected(false);
+			itemRepository.save(item2);
+		} catch (NoSuchElementException e) {
+
 		}
 		itemTaxAndCostService.getTheBillDetails(itemDetails);
 		return itemDetails;
